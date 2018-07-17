@@ -46,7 +46,8 @@ def socket(ws):
         if msg != None and msg != '' and msg != b'' :
             try:
                 decode = json.loads(msg)
-                if 'id0' in decode:
+                print(decode)
+                if 'id0' in decode and len(decode['id0']) == 32:
                     connections[decode['id0']] = ws
                     if 'friendCode' in decode:
                         fc = int(decode['friendCode'])
