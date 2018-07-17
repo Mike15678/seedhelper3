@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Seedhelper</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.1.1/cyborg/bootstrap.min.css" crossorigin="anonymous">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap.native@2.0.21/dist/bootstrap-native-v4.min.js"></script>
+    <style>
+        .form-control::-webkit-input-placeholder, .form-control::-moz-placeholder, .form-control:-ms-input-placeholder, .form-control:-moz-placeholder, .form-control::placeholder, .form-control:placeholder, .form-control::placeholder {
+            color: lightgrey !important;
+        }
+    </style>
+    <meta name="theme-color" content="#2a9fd6" />
+    <link rel="icon" href="/logo.png" />
+</head>
+
+<body>
+    <nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-primary" id="navbar" style="border: none">
+        <a class="navbar-brand" href="/">Seedhelper</a>
+        <span id="statusText" class="navbar-text ml-auto">Stats temporarily disabled<span>
+    </nav>
+    
+<main class="container">
+<!--{{ if isUp == false }}
+    <div class="alert alert-danger">Seedhelper is having issues. You will be stuck waiting for the bot until the issue is fixed.
+        <a href="https://discord.gg/C29hYvh">Nintendo Homebrew Discord</a> for help. </div>
+    <!--{{end}}-->
+    <div class="alert alert-info">If you have issues, try refreshing the page, pressing "Start again" below and asking for help on the
+	    <a href="https://discord.gg/C29hYvh">Nintendo Homebrew Discord</a>.</div>
+    <button id="cancelButton1" class="btn">Start again</button>
+    <div id="accordion">
+        <div class="card">
+            <div class="card-header" id="headingOne">
+                <h5 class="mb-0">
+                    <button disabled class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Welcome!
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                <div class="card-body">
+                    Welcome to Seedhelper 3! This service is supported by the people who run the bruteforce script; see the bottom of this page
+                    for more info on that. You should be following
+                    <a href="https://jisagi.github.io/SeedminerGuide/">Jisagi's seedminer guide</a> to use this service. You may find it harder to get help if you aren't using
+                    this guide! To use this service,
+                    <b>type your Friend Code and your id0 in the box below</b> or upload a movable_part1.sed if you already
+                    have it.
+                    <form>
+                        <div class="form-group">
+                            <label for="friendCode">Your friend code</label>
+                            <a href="#" data-toggle="tooltip" data-html="true" title="You can find your friend code in the friends list, which is the orange face on the HOME Menu of your Nintendo 3DS. Simply swipe right to your Mii's friend card. You may need to make one if you haven't already.">(how to get)</a>
+                            <input required class="form-control" id="friendCode" maxlength="15" type="text" placeholder="123456789012" max="549755813887">
+                            <!--<a id="uploadp1" href="#">or upload a movable_part1.sed</a>
+                            <input type="file" style="display: none" id="p1file" accept=".sed" />
+                            <input type="hidden" id="part1b64" />-->
+                        </div>
+                        <div class="form-group">
+                            <label for="id0">Your ID0</label>
+                            <a href="#" data-toggle="tooltip" data-html="true" title="You can find your ID0 in the Nintendo 3DS folder on your SD card. It is the random folder name inside that folder but <b>not the folder inside that!</b> <br /><img src='https://i.imgur.com/1AeECFF.png' />">(how to get)</a>
+                            <input required type="text" class="form-control" id="id0" maxlength="32" pattern="[a-fA-F0-9]{32}" placeholder="52f10c83610ebca1a059c0bae8255eb">
+                        </div>
+
+                        <button id="beginButton" class="btn btn-primary">Go</button>
+
+                        <div id="fcError" class="alert alert-danger" role="alert" style="display: none;">
+                            Your Friend Code, Part1 or ID0 is incorrect. Type it correctly, the ID0 in lowercase and the Friend Code without dashes.
+                        </div>
+                        <div id="fcWarning" class="alert alert-warning" role="alert" style="display: none;">
+                            Your ID0 appears to be an ID1. The ID0 is the name of the folder inside the Nintendo 3DS folder,
+                            <b>not the folder inside that!</b> Check your ID0 is correct and try again. If you are having issues
+                            finding your ID0, ask the
+                            <a href="https://discord.gg/C29hYvh">Nintendo Homebrew Discord</a>.
+                            <br />
+                            <img src="https://i.imgur.com/1AeECFF.png" />
+                        </div>
+                        <div class="progress" id="fcProgress" style="display: none;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+                                aria-valuemax="100" style="width: 100%">Waiting...</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" id="headingTwo">
+                <h5 class="mb-0">
+                    <button disabled class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Step 1: Add the bot
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                <div class="card-body">
+                    <b>Add the friend code
+                        <!-- kartik 2: 2583-4750-6296-->
+                        <!--figgyc -->0275-9929-0078
+                        <!-- -->
+                        <!-- kartik 1: 0276-1393-2984-->.</b> It is connected to this website and will automatically retrieve your movable_part1 when you
+                    add it back. Simply add it back and wait for it to process your friend code. If nothing on this website
+                    changes after you add the bot, refresh the page.
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+                            aria-valuemax="100" style="width: 100%">Waiting...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" id="headingThree">
+                <h5 class="mb-0">
+                    <button disabled class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
+                        aria-controls="collapseThree">
+                        Step 2: Bruteforce
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                <div class="card-body"><!--
+                    <b>If you have your own GPU</b>, then
+                    <a href="#" id="downloadPart1" class="disableButton">download movable_part1.sed</a> and go back to the guide and bruteforce the movable.sed yourself. Otherwise,
+                    <b>press Continue</b> if you need someone else to bruteforce it.-->
+                    <button id="continue" style="display:none" class="btn btn-primary">Continue</button>
+                    <a href="#" id="downloadPart12" class="disableButton btn">Download movable_part1.sed</a>
+                    <button id="cancelButton2" class="btn">Do another device</button>
+                    <p style="color: red">The bruteforce client is currently disabled while the rest of the service is disabled. Ask on the Nintendo Homebrew Discord for a friend to bruteforce if you need it or follow <a href="https://jisagi.github.io/SeedminerGuide/seedminerSelf/#section2">this guide</a> to bruteforce it yourself.</p>
+                    <p id="disableMessage" style="display: none;">If you are bruteforceing with your own GPU, you don't need to press this button! If you downloaded your
+                        part1 on accident or for another reason, click
+                        <a id="enableButton">here</a> to turn it on again.</p>
+                </div>
+            </div>
+        </div><div style="display:none">
+        <div class="card">
+            <div class="card-header" id="headingFour">
+                <h5 class="mb-0">
+                    <button disabled class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false"
+                        aria-controls="collapseFour">
+                        Step 3: Wait
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
+                <div class="card-body">
+                    <b>Wait</b> for the bruteforce to complete. Feel free to leave the website running in the background or
+                    even close it. This may take up to an hour, but it usually lasts about 30 minutes and sometimes less.
+                    Don't worry if your GPU is not powerful because this is happening on another computer. While you wait,
+                    please check that your ID0 is correct and cancel the job if it is not, or you will be waiting forever!
+                    If you have been waiting a while and nothing has happened, try refreshing the page
+                    <br /> ID0:
+                    <span id="id0Fill"></span>
+                    <br />
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="bfProgress" aria-valuenow="100"
+                            aria-valuemin="0" aria-valuemax="100" style="width: 100%">Waiting...</div>
+                    </div>
+                    <button id="cancelButton" class="btn btn-danger">Cancel</button> If you cancel the bruteforce, you will have to restart the process!
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header" id="headingFive">
+                <h5 class="mb-0">
+                    <button disabled class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false"
+                        aria-controls="collapseFive">
+                        Step 4: Done!
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordion">
+                <div class="card-body">
+                    <a href="#" id="downloadMovable">Download movable.sed</a> and go back to the guide to inject your DSiWare. Thanks to the people who run
+                    the bruteforcing script who make this service possible!
+                    <br>
+		    <a href="#" class="btn btn-primary" id="downloadMovable2">Download movable.sed</a>
+                    <button id="cancelButton3" class="btn">Do another device</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="accordion2">
+        <div class="card">
+            <div class="card-header" id="headingX">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseX" aria-expanded="false" aria-controls="collapseX">
+                        Mine for Seedhelper
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseX" class="collapse" aria-labelledby="headingX" data-parent="#accordion2">
+                <div class="card-body">
+                    Seedhelper is powered by the people who run a special script and lend their GPU time to the service. If you have a powerful
+                    GPU then please lend it to the service when you aren't using it. Please don't run the script on integrated
+                    graphics as it will immensely slow the process for some users! Here's how to do that yourself:
+                    <ol>
+                        <li>Download and install
+                            <a href="https://www.python.org/downloads/">Python 3 (not 2)</a>
+                        </li>
+                        <li>Download
+                            <a href="https://github.com/zoogie/seedminer/releases">seedminer</a> and extract the zip</li>
+                        <li>Download
+                            <a href="static/seedminer_autolauncher.py">seedminer_autolauncher.py</a>. This script is different then Seedhelper 1 so please redownload
+                            it!
+                        </li>
+                        <li>Download the
+                            <a href="static/bfcl.exe">no-pause bfcl.exe mod</a>
+                        </li>
+                        <li>Copy seedminer_autolauncher.py and bfcl.exe to the seedminer folder.</li>
+                        <li>Open an admin command prompt by opening Start, typing cmd and pressing Ctrl+Shift+Enter. Type "py
+                            -m pip install requests" without the quotes and press enter.</li>
+                        <li>Shift+right click in the seedminer folder, press "Open command window here" or "Open Windows Powershell
+                            here" and type "py seedminer_autolauncher.py" to start working. The script will test your GPU
+                            for adequate power to help keep the service fast. Press Ctrl+C inside the command window to stop
+                            working.</li>
+                    </ol>
+                </div>
+            </div>
+        </div> </div>
+        <div class="card">
+            <div class="card-header" id="headingY">
+                <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseY" aria-expanded="false" aria-controls="collapseY">
+                        Credits
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseY" class="collapse" aria-labelledby="headingY" data-parent="#accordion2">
+                <div class="card-body">
+                    Seedhelper is developed by
+                    <a href="https://github.com/figgyc">figgyc</a> and is
+                    <a href="https://github.com/figgyc/seedhelper2">open source</a>. Seedhelper has been possible thanks to many people:
+                    <ul>
+                        <li>
+                            <a href="https://github.com/Pirater12">@Pirater12</a> for reverse engineering frd:a and making httpc_curl to make the friend code bot
+                            possible</li>
+                        <li>
+                            <a href="https://github.com/zoogie">@zoogie</a> for creating the seedminer applications and finding the vulnerability</li>
+                        <li>
+                            <a href="https://github.com/Jisagi">@Jisagi</a> for creating the seedminer guide</li>
+                        <li>
+                            <a href="https://github.com/jason0597">@jason0597</a>,
+                            <a href="https://github.com/knight-ryu12">@knight-ryu12</a>,
+                            <a href="https://github.com/saibotu">@saibotu</a>, and anyone who has used the service for testing and finding bugs!</li>
+			<li>All Seedhelper miners including:<li>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Score</th>
+					</tr>
+				</thead>
+				<tbody><!--
+					{{range miner := miners}}
+					<tr>
+						<td>{{if _, ok := miner["name"]; ok}}
+							{{miner["name"]}}
+						{{else}}
+							Someone
+						{{end}}</td>
+						<td>{{miner["score"]}}</td>
+					</tr>
+					{{end}}-->
+					Temporarily disabled due to issues
+				</tbody>
+			</table>
+			<form action="/setname" method="GET">
+				<input required class="form-control" id="name" type="text" placeholder="Set your name on this leaderboard" name="name"> 
+				<input type="submit" class="btn btn-primary" />
+			</form>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script defer src="/static/js/script.js"></script>
+</body>
+
+</html>
