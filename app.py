@@ -82,6 +82,7 @@ def getfcs():
     string = ''
     for user in db.devices.find({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}}):
         try:
+            print(user)
             string += str(user['friendcode'])
             string += '\n'
         except Exception as e:
