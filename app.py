@@ -50,7 +50,7 @@ def socket(ws):
             try:
                 decode = json.loads(msg)
                 print(decode)
-                if 'id0' in decode and len(decode['id0']) == 32:
+                if 'id0' in decode and decode['id0'] is not None and len(decode['id0']) == 32:
                     connections[decode['id0']] = ws
                     if 'request' in decode and decode['request'] == 'bruteforce':
                         db.devices.update({'id0': decode['id0'], 'lfcs': {'$exists': True}}, {'$set': {'wantsbf': True, 'expirytime': emptytime}}, upsert=True)
