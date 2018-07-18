@@ -16,9 +16,9 @@ import shutil
 import pickle
 
 s = requests.Session()
-baseurl = "https://seedhelper.figgyc.uk"
+baseurl = "https://seedhelper3.figgyc.uk"
 currentid = ""
-currentVersion = "2.1.1"
+currentVersion = "2.2"
 
 if os.path.isfile("total_mined"):
     with open("total_mined", "rb") as file:

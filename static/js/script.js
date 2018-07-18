@@ -73,14 +73,14 @@ function base64ArrayBuffer(arrayBuffer) {
 let socket = new WebSocket("ws" + (location.protocol == "https:" ? "s" : "") + "://" + location.host + "/socket")
 let force = "no"
 
-socket.addEventListener("open", (e) => {
+socket.addEventListener("open", function(e) {
     if (localStorage.getItem("id0") != null) {
         // send intro packet, if we get anything back then stuff will happen
         socket.send(JSON.stringify({
             id0: localStorage.getItem("id0")
         }))
     }
-    setInterval(() => {
+    setInterval(function() {
         // send id0 packet, its a good fallback as well as providing 'live' stats
         socket.send(JSON.stringify({
             id0: localStorage.getItem("id0")
@@ -88,24 +88,24 @@ socket.addEventListener("open", (e) => {
     }, 60000)
 })
 
-socket.addEventListener("close", () => {
+socket.addEventListener("close", function() {
     document.getElementById("navbar").classList.remove("bg-primary")
     document.getElementById("statusText").innerText = "Refresh the page"
     document.getElementById("navbar").classList.add("bg-warning")
-    setTimeout(() => {
+    setTimeout(function() {
         window.location.reload(true)
     }, 10000)
 })
-socket.addEventListener("error", () => {
+socket.addEventListener("error", function() {
     document.getElementById("navbar").classList.remove("bg-primary")
     document.getElementById("statusText").innerText = "Refresh the page"
     document.getElementById("navbar").classList.add("bg-warning")
-    setTimeout(() => {
+    setTimeout(function() {
         window.location.reload(true)
     }, 10000)
 })
 
-socket.addEventListener("message", (e) => {
+socket.addEventListener("message", function(e) {
     let data = JSON.parse(e.data)
     document.getElementById("statusText").innerText = `${data.minerCount} miners are online, ${data.userCount} users in the mining queue, ${data.miningCount} are being mined, ${data.totalCount} total users, ${data.p1count} got part1, ${data.msCount} got movable`
     //console.log("hey!", e.data, data.status)
@@ -176,7 +176,7 @@ socket.addEventListener("message", (e) => {
         document.getElementById("collapseThree").classList.remove("show")
         document.getElementById("collapseFour").classList.add("show")
         document.getElementById("collapseFive").classList.remove("show")
-        document.getElementById("bfProgress").classList.remove("bg-warning")
+        document.getElementById("bfProgress").classList.remove("bg-success")
         document.getElementById("id0Fill").innerText = localStorage.getItem("id0")
         document.getElementById("bfProgress").innerText = "Waiting..."
     }
@@ -189,7 +189,7 @@ socket.addEventListener("message", (e) => {
         document.getElementById("collapseThree").classList.remove("show")
         document.getElementById("collapseFour").classList.add("show")
         document.getElementById("collapseFive").classList.remove("show")
-        document.getElementById("bfProgress").classList.add("bg-warning")
+        document.getElementById("bfProgress").classList.add("bg-success")
         document.getElementById("id0Fill").innerText = localStorage.getItem("id0")
         document.getElementById("bfProgress").innerText = "Bruteforcing..."
     }
@@ -204,19 +204,19 @@ socket.addEventListener("message", (e) => {
     uploadP1 a
     p1file input[type=file]
 */
-document.getElementById("uploadp1").addEventListener("click", (e) => {
+document.getElementById("uploadp1").addEventListener("click", function(e) {
     let fileInput = document.getElementById("p1file")    
     fileInput.click()
 })
 
-document.getElementById("p1file").addEventListener("change", (e) => {
+document.getElementById("p1file").addEventListener("change", function(e) {
     let fileInput = e.target
     let fileList = fileInput.files
     if (fileList.length == 1 && fileList[0].size == 0x1000) {
         let file = fileInput.files[0]
         let fileReader = new FileReader()
         fileReader.readAsArrayBuffer(file)
-        fileReader.addEventListener("loadend", () => {
+        fileReader.addEventListener("loadend", function() {
             let arrayBuffer = fileReader.result
             let lfcsBuffer = arrayBuffer.slice(0, 8)
             let lfcsArray = new Uint8Array(lfcsBuffer)
@@ -247,7 +247,7 @@ document.getElementById("p1file").addEventListener("change", (e) => {
     id0 input box
     beginButton button
 */
-document.getElementById("beginButton").addEventListener("click", (e) => {
+document.getElementById("beginButton").addEventListener("click", function(e) {
     e.preventDefault()
     document.getElementById("friendCode").value = document.getElementById("friendCode").value.replace(/-/g, "")
     document.getElementById("fcError").style.display = "none"
@@ -273,7 +273,7 @@ document.getElementById("beginButton").addEventListener("click", (e) => {
     Step 4: wait for BF
     continue button
 */
-document.getElementById("continue").addEventListener("click", (e) => {
+document.getElementById("continue").addEventListener("click", function(e) {
     e.preventDefault()
     //document.getElementById("").setAttribute()
     socket.send(JSON.stringify({
@@ -286,26 +286,26 @@ document.getElementById("continue").addEventListener("click", (e) => {
 })
 
 // anti queue clogging
-document.querySelector(".disableButton").addEventListener("click", (e) => {
+document.querySelector(".disableButton").addEventListener("click", function(e) {
     document.getElementById("continue").disabled = true
     document.getElementById("disableMessage").style.display = "block"
 })
 
-document.getElementById("enableButton").addEventListener("click", (e) => {
+document.getElementById("enableButton").addEventListener("click", function(e) {
     document.getElementById("continue").disabled = false
     document.getElementById("disableMessage").style.display = "none"
 })
 
-document.getElementById("statusText").addEventListener("click", (e) => {
+document.getElementById("statusText").addEventListener("click", function(e) {
     document.getElementById("beginButton").disabled = false
     force = "yes"
 })
 
-document.getElementById("id0").addEventListener("change", e => {
+document.getElementById("id0").addEventListener("change", function(e) {
     document.getElementById("beginButton").disabled = false
 })
 
-document.getElementById("friendCode").addEventListener("change", e => {
+document.getElementById("friendCode").addEventListener("change", function(e) {
     document.getElementById("beginButton").disabled = false
 })
 

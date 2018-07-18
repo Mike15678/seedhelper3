@@ -12,6 +12,7 @@ import signal
 import hashlib
 import struct
 
+
 def graceful_reload(signum, traceback):
     """Explicitly close some global MongoClient object."""
     client.close()
@@ -23,6 +24,8 @@ websocket = WebSocket(app)
 client = MongoClient(connect=False)
 db = client.main
 connections = {}
+# backwards compatible zero time from sh2 go
+emptytime = datetime.datetime(1,1,1)
 
 #thx to kurisu
 def verify_fc(fc):
@@ -49,22 +52,28 @@ def socket(ws):
                 print(decode)
                 if 'id0' in decode and len(decode['id0']) == 32:
                     connections[decode['id0']] = ws
-                    if 'friendCode' in decode:
+                    if 'request' in decode and decode['request'] == 'bruteforce':
+                        db.devices.update({'id0': decode['id0'], 'lfcs': {'$exists': True}}, {'$set': {'wantsbf': True, 'expirytime': emptytime}}, upsert=True)
+                        ws.send(buildMessage('queue'))
+                    elif 'friendCode' in decode:
                         fc = int(decode['friendCode'])
                         if verify_fc(fc):
                             db.devices.update({'id0': decode['id0']}, {'friendcode': fc}, upsert=True)
-                            connections[decode['id0']].send(buildMessage('friendCodeProcessing'))
+                            ws.send(buildMessage('friendCodeProcessing'))
                         else:
-                            connections[decode['id0']].send(buildMessage('friendCodeAdded'))
+                            ws.send(buildMessage('friendCodeAdded'))
+                    elif 'part1' in decode:
+                        db.devices.update({'id0': decode['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(decode['lfcs'])}}, upsert=True)
+                        ws.send(buildMessage('queue'))
                     else:
                         db.devices.find()
                         device = db.devices.find_one({"id0": decode['id0']})
                         if 'lfcs' in device: 
-                            connections[decode['id0']].send(buildMessage('movablePart1'))
+                            ws.send(buildMessage('movablePart1'))
                         elif 'hasadded' in device and device['hasadded'] == True:
-                            connections[decode['id0']].send(buildMessage('friendCodeAdded'))
+                            ws.send(buildMessage('friendCodeAdded'))
                         else:
-                            connections[decode['id0']].send(buildMessage('friendCodeProcessing'))
+                            ws.send(buildMessage('friendCodeProcessing'))
             except Exception as e:
                 print("socket json decode fail", e)
         else:
@@ -118,13 +127,84 @@ def lfcs(fc):
 def part1(id0):
     if id0 != '':
         device = db.devices.find_one({"id0": id0})
-        if 'lfcs' in device: 
+        if 'lfcs' in device:
             st = struct.pack('<Q8x', device['lfcs'])
             print(st)
             st += bytearray(id0)
             resp = make_response(st)
             resp.headers['Content-Disposition'] = 'inline; filename="movable_part1.sed"'
             return resp
+        else:
+            return 'error'
+    else:
+        return 'error'
+
+@app.route('/movable/<id0>')
+def movable(id0):
+    if id0 != '':
+        device = db.devices.find_one({"id0": id0})
+        if 'movable' in device:
+            resp = make_response(device['movable'])
+            resp.headers['Content-Disposition'] = 'inline; filename="movable_part1.sed"'
+            return resp
+        else:
+            return 'error'
+    else:
+        return 'error'
+
+@app.route('/getwork')
+def getwork():
+    currentlymining = db.devices.count_documents({"miner": request.headers['X-Forwarded-For'], "hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}})
+    if currentlymining > 0:
+        return 'nothing'
+    devicetomine = db.devices.find_one({"hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}, "wantsbf": True, "cancelled": {"$ne": True}})
+    if devicetomine is not None:
+        return devicetomine['id0']
+    else:
+        return 'nothing'
+
+@app.route('/claim/<id0>')
+def claim(id0):
+    devicetomine = db.devices.find_one({"id0": id0, "hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
+    if devicetomine != None:
+        db.devices.update_one({"id0": id0}, {'$set': {'miner': request.headers['X-Forwarded-For'], 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1)}})
+        connections[id0].send(buildMessage('bruteforcing'))
+        return 'ok'
+    else:
+        return 'error'
+
+@app.route('/check/<id0>')
+def check(id0):
+    devicetomine = db.devices.find_one({"id0": id0, "hasmovable": {"$ne": True}, "expirytime": {"$gt": datetime.datetime.now()}, "expired": {"$ne": True}, "wantsbf": True, "cancelled": {"$ne": True}})
+    if devicetomine != None:
+        return 'error'
+    else:
+        return 'ok'
+
+@app.route('/cancel/<id0>')
+def cancel(id0):
+    kill = request.args.get('kill', 'n')
+    devicetomine = db.devices.find_one({"id0": id0, "hasmovable": {"$ne": True}, "expirytime": {"$gt": datetime.datetime.now()}, "expired": {"$ne": True}, "wantsbf": True, "cancelled": {"$ne": True}, "miner": {"$exists": False}})
+    if devicetomine != None:
+        db.devices.update_one({"id0": id0}, {'$set': {'miner': request.headers['X-Forwarded-For'], 'cancelled': (kill == 'y'), 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1)}})
+        if kill == 'y':
+            connections[id0].send(buildMessage('flag'))
+        else:
+            connections[id0].send(buildMessage('queue'))
+        return 'ok'
+    else:
+        return 'error'
+
+@app.route('/upload/<id0>')
+def upload(id0):
+    if 'movable' in request.files:
+        file = request.files['movable']
+        if file.size == 320:
+            buf = file.stream.read()
+            db.devices.update_one({"id0": id0}, {'$set': {'movable': buf, 'hasmovable': True, 'wantsbf': False }})
+            # TODO: leaderboard return
+            connections[id0].send(buildMessage('done'))
+            return 'ok'
         else:
             return 'error'
     else:
