@@ -3,7 +3,7 @@ monkey.patch_all()
 
 from flask import Flask
 from flask import request, make_response
-from flask_uwsgi_websocket import WebSocket
+from flask_uwsgi_websocket import WebSocket, GeventWebSocket
 from pymongo import MongoClient
 import json
 import binascii
@@ -20,7 +20,7 @@ def graceful_reload(signum, traceback):
 signal.signal(signal.SIGINT, graceful_reload)
 
 app = Flask(__name__)
-websocket = WebSocket(app)
+websocket = GeventWebSocket(app)
 client = MongoClient(connect=False)
 db = client.main
 connections = {}
@@ -214,4 +214,4 @@ def upload(id0):
 # note to anyone trying to run this: static files including index are served through nginx
 
 if __name__ == '__main__':
-    app.run(port=8080)
+    app.run(port=8080, gevent=100)
