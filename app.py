@@ -76,8 +76,6 @@ def socket(ws):
                             ws.send(buildMessage('friendCodeProcessing'))
             except Exception as e:
                 print("socket json decode fail", e)
-        else:
-            # return
 
 @app.route('/getfcs')
 def getfcs():
