@@ -77,7 +77,7 @@ def socket(ws):
             except Exception as e:
                 print("socket json decode fail", e)
         else:
-            return
+            # return
 
 @app.route('/getfcs')
 def getfcs():
