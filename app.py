@@ -80,7 +80,7 @@ def socket(ws):
 @app.route('/getfcs')
 def getfcs():
     string = ''
-    for user in db.devices.find({"hasadded": {"$ne": True}}):
+    for user in db.devices.find({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}}):
         try:
             string += str(user['friendcode'])
             string += '\n'
