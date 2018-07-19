@@ -140,6 +140,7 @@ def part1(id0):
             st = struct.pack('>8s8x', device['lfcs'])
             print(st)
             st += bytearray(id0, 'ascii')
+            st+= bytearray(976)
             resp = make_response(st)
             resp.headers['Content-Type'] = 'application/octet-stream'
             resp.headers['Content-Disposition'] = 'inline; filename="movable_part1.sed"'
