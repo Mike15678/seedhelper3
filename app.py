@@ -80,13 +80,17 @@ def socket(ws):
 def getfcs():
     string = ''
     try:
-        for user in db.devices.find_one({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}}):
-            try:
-                print(user)
-                string += str(user['friendcode'])
-                string += '\n'
-            except Exception as e:
-                print("error", e)
+        users = db.devices.find_one({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}})
+        if users is not None:
+            for user in users:
+                try:
+                    print(user)
+                    string += str(user['friendcode'])
+                    string += '\n'
+                except Exception as e:
+                    print("error", e)
+        else:
+            return 'nothing'
     except:
         return 'nothing'
     if string != '':
@@ -131,7 +135,7 @@ def part1(id0):
         if 'lfcs' in device:
             st = struct.pack('<8s8x', device['lfcs'])
             print(st)
-            st += bytearray(id0)
+            st += bytearray(id0, 'ascii')
             resp = make_response(st)
             resp.headers['Content-Disposition'] = 'inline; filename="movable_part1.sed"'
             return resp
