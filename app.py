@@ -53,20 +53,19 @@ def socket(ws):
                 if 'id0' in decode and decode['id0'] is not None and len(decode['id0']) == 32:
                     connections[decode['id0']] = ws
                     if 'request' in decode and decode['request'] == 'bruteforce':
-                        db.devices.update({'id0': decode['id0'], 'lfcs': {'$exists': True}}, {'$set': {'wantsbf': True, 'expirytime': emptytime}}, upsert=True)
+                        db.devices.update_one({'id0': decode['id0'], 'lfcs': {'$exists': True}}, {'$set': {'wantsbf': True, 'expirytime': emptytime}}, upsert=True)
                         ws.send(buildMessage('queue'))
                     elif 'friendCode' in decode:
                         fc = int(decode['friendCode'])
                         if verify_fc(fc):
-                            db.devices.update({'id0': decode['id0']}, {'friendcode': fc}, upsert=True)
+                            db.devices.update_one({'id0': decode['id0']}, {'$set': {'friendcode': fc}}, upsert=True)
                             ws.send(buildMessage('friendCodeProcessing'))
                         else:
                             ws.send(buildMessage('friendCodeAdded'))
                     elif 'part1' in decode:
-                        db.devices.update({'id0': decode['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(decode['lfcs'])}}, upsert=True)
+                        db.devices.update_one({'id0': decode['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(decode['lfcs'])}}, upsert=True)
                         ws.send(buildMessage('queue'))
                     else:
-                        db.devices.find()
                         device = db.devices.find_one({"id0": decode['id0']})
                         if 'lfcs' in device: 
                             ws.send(buildMessage('movablePart1'))
@@ -80,7 +79,7 @@ def socket(ws):
 @app.route('/getfcs')
 def getfcs():
     string = ''
-    for user in db.devices.find({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}}):
+    for user in db.devices.find_one({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}}):
         try:
             print(user)
             string += str(user['friendcode'])
@@ -94,9 +93,9 @@ def getfcs():
 @app.route('/added/<int:fc>')
 def added(fc):
     try:
-        db.devices.update({'friendcode':fc}, {'$set': {'hasadded': True}})
+        db.devices.update_one({'friendcode':fc}, {'$set': {'hasadded': True}})
         try:
-            thing = db.devices.find({'friendcode':fc})
+            thing = db.devices.find_one({'friendcode':fc})
             connections[thing['id0']].send(buildMessage('friendCodeAdded'))
         except:
             return 'error'
@@ -110,9 +109,9 @@ def lfcs(fc):
     lfcs = binascii.unhexlify(request.args.get('lfcs', None))
     if lfcs != None:
         try:
-            db.devices.update({'friendcode':fc}, {'$set': {'lfcs':lfcs}})
+            db.devices.update_one({'friendcode':fc}, {'$set': {'lfcs':lfcs}})
             try:
-                thing = db.devices.find({'friendcode':fc})
+                thing = db.devices.find_one({'friendcode':fc})
                 connections[thing['id0']].send(buildMessage('movablePart1'))
             except:
                 return 'error'
