@@ -53,7 +53,7 @@ def socket(ws):
         if msg != None and msg != '' and msg != b'' :
             try:
                 jsonDecoded = json.loads(msg)
-                print(jsonDecoded)
+                print(jsonDecoded, 'request' in jsonDecoded, 'friendCode' in jsonDecoded, 'friendcode' in jsonDecoded, 'part1' in jsonDecoded, 'id0' in jsonDecoded)
                 if 'id0' in jsonDecoded and jsonDecoded['id0'] is not None and len(jsonDecoded['id0']) == 32:
                     connections[jsonDecoded['id0']] = ws
                     if 'request' in jsonDecoded and jsonDecoded['request'] == 'bruteforce':
@@ -187,6 +187,7 @@ def claim(id0):
 
 @app.route('/check/<id0>')
 def check(id0):
+    db.devices.update({'id0': id0, 'checktime': datetime.datetime.now()})
     devicetomine = db.devices.find_one({"id0": id0, "hasmovable": {"$ne": True}, "expirytime": {"$gt": datetime.datetime.now()}, "expired": {"$ne": True}, "wantsbf": True, "cancelled": {"$ne": True}})
     if devicetomine != None:
         return 'error'
