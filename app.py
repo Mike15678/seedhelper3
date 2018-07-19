@@ -137,6 +137,7 @@ def part1(id0):
             print(st)
             st += bytearray(id0, 'ascii')
             resp = make_response(st)
+            resp.headers['Content-Type'] = 'application/octet-stream'
             resp.headers['Content-Disposition'] = 'inline; filename="movable_part1.sed"'
             return resp
         else:
@@ -150,6 +151,7 @@ def movable(id0):
         device = db.devices.find_one({"id0": id0})
         if 'movable' in device:
             resp = make_response(device['movable'])
+            resp.headers['Content-Type'] = 'application/octet-stream'
             resp.headers['Content-Disposition'] = 'inline; filename="movable_part1.sed"'
             return resp
         else:
