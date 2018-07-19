@@ -40,6 +40,10 @@ def buildMessage(status):
     message = {'status': status}
     return json.dumps(message)
 
+def safeSendMessage(id0, status):
+    if id0 in connections:
+        connections[id0].send(buildMessage(status))
+
 @websocket.route('/socket')
 def socket(ws):
     while True:
@@ -103,7 +107,7 @@ def added(fc):
         db.devices.update_one({'friendcode':fc}, {'$set': {'hasadded': True}})
         try:
             thing = db.devices.find_one({'friendcode':fc})
-            connections[thing['id0']].send(buildMessage('friendCodeAdded'))
+            safeSendMessage(thing['id0'], 'friendCodeAdded')
         except:
             return 'error'
         return 'ok'
@@ -119,7 +123,7 @@ def lfcs(fc):
             db.devices.update_one({'friendcode':fc}, {'$set': {'lfcs':lfcs}})
             try:
                 thing = db.devices.find_one({'friendcode':fc})
-                connections[thing['id0']].send(buildMessage('movablePart1'))
+                safeSendMessage(thing['id0'], 'movablePart1')
             except:
                 return 'error'
             return 'ok'
@@ -176,7 +180,7 @@ def claim(id0):
     devicetomine = db.devices.find_one({"id0": id0, "hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
     if devicetomine != None:
         db.devices.update_one({"id0": id0}, {'$set': {'miner': request.headers['X-Forwarded-For'], 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1)}})
-        connections[id0].send(buildMessage('bruteforcing'))
+        safeSendMessage(id0, 'bruteforcing')
         return 'ok'
     else:
         return 'error'
@@ -196,9 +200,9 @@ def cancel(id0):
     if devicetomine != None:
         db.devices.update_one({"id0": id0}, {'$set': {'miner': request.headers['X-Forwarded-For'], 'cancelled': (kill == 'y'), 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1)}})
         if kill == 'y':
-            connections[id0].send(buildMessage('flag'))
+            safeSendMessage(id0, 'flag')
         else:
-            connections[id0].send(buildMessage('queue'))
+            safeSendMessage(id0, 'queue')
         return 'ok'
     else:
         return 'error'
@@ -211,7 +215,7 @@ def upload(id0):
             buf = file.stream.read()
             db.devices.update_one({"id0": id0}, {'$set': {'movable': buf, 'hasmovable': True, 'wantsbf': False }})
             # TODO: leaderboard return
-            connections[id0].send(buildMessage('done'))
+            safeSendMessage(id0, 'done')
             return 'ok'
         else:
             return 'error'
