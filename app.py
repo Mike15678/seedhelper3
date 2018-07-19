@@ -52,25 +52,25 @@ def socket(ws):
         print(msg, type(msg), msg == None, msg == '', msg == b'')
         if msg != None and msg != '' and msg != b'' :
             try:
-                decode = json.loads(msg)
-                print(decode)
-                if 'id0' in decode and decode['id0'] is not None and len(decode['id0']) == 32:
-                    connections[decode['id0']] = ws
-                    if 'request' in decode and decode['request'] == 'bruteforce':
-                        db.devices.update_one({'id0': decode['id0'], 'lfcs': {'$exists': True}}, {'$set': {'wantsbf': True, 'expirytime': emptytime}}, upsert=True)
+                jsonDecoded = json.loads(msg)
+                print(jsonDecoded)
+                if 'id0' in jsonDecoded and jsonDecoded['id0'] is not None and len(jsonDecoded['id0']) == 32:
+                    connections[jsonDecoded['id0']] = ws
+                    if 'request' in jsonDecoded and jsonDecoded['request'] == 'bruteforce':
+                        db.devices.update_one({'id0': jsonDecoded['id0'], 'lfcs': {'$exists': True}}, {'$set': {'wantsbf': True, 'expirytime': emptytime}}, upsert=True)
                         ws.send(buildMessage('queue'))
-                    elif 'friendCode' in decode:
-                        fc = int(decode['friendCode'])
+                    elif 'friendCode' in jsonDecoded:
+                        fc = int(jsonDecoded['friendCode'])
                         if verify_fc(fc):
-                            db.devices.update_one({'id0': decode['id0']}, {'$set': {'friendcode': fc}}, upsert=True)
+                            db.devices.update_one({'id0': jsonDecoded['id0']}, {'$set': {'friendcode': fc}}, upsert=True)
                             ws.send(buildMessage('friendCodeProcessing'))
                         else:
                             ws.send(buildMessage('friendCodeAdded'))
-                    elif 'part1' in decode:
-                        db.devices.update_one({'id0': decode['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(decode['lfcs'])}}, upsert=True)
+                    elif 'part1' in jsonDecoded:
+                        db.devices.update_one({'id0': jsonDecoded['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(jsonDecoded['lfcs'])}}, upsert=True)
                         ws.send(buildMessage('queue'))
                     else:
-                        device = db.devices.find_one({"id0": decode['id0']})
+                        device = db.devices.find_one({"id0": jsonDecoded['id0']})
                         if 'lfcs' in device: 
                             ws.send(buildMessage('movablePart1'))
                         elif 'hasadded' in device and device['hasadded'] == True:
