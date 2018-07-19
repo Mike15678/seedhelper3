@@ -137,7 +137,7 @@ def part1(id0):
     if id0 != '':
         device = db.devices.find_one({"_id": id0})
         if 'lfcs' in device:
-            st = struct.pack('>8s8x', device['lfcs'])
+            st = struct.pack('>8s8x', device['lfcs'][::-1])
             print(st)
             st += bytearray(id0, 'ascii')
             st+= bytearray(976)
