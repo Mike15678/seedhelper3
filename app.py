@@ -169,7 +169,7 @@ def getwork():
     if currentlymining > 0:
         return 'nothing'
     devicetomine = db.devices.find_one({"hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}, "wantsbf": True, "cancelled": {"$ne": True}})
-    print(devicetomine)
+    print("thing", devicetomine)
     if devicetomine is not None and 'id0' in devicetomine:
         return devicetomine['id0']
     else:
