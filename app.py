@@ -79,13 +79,16 @@ def socket(ws):
 @app.route('/getfcs')
 def getfcs():
     string = ''
-    for user in db.devices.find_one({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}}):
-        try:
-            print(user)
-            string += str(user['friendcode'])
-            string += '\n'
-        except Exception as e:
-            print("error", e)
+    try:
+        for user in db.devices.find_one({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}}):
+            try:
+                print(user)
+                string += str(user['friendcode'])
+                string += '\n'
+            except Exception as e:
+                print("error", e)
+    except:
+        return 'nothing'
     if string != '':
         return string
     return 'nothing'
