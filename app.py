@@ -29,7 +29,6 @@ emptytime = datetime.datetime(1,1,1)
 
 #thx to kurisu
 def verify_fc(fc):
-    fc = int(fc.replace('-', ''))
     if fc > 0x7FFFFFFFFF:
         return None
     principal_id = fc & 0xFFFFFFFF
@@ -53,7 +52,7 @@ def socket(ws):
         if msg != None and msg != '' and msg != b'' :
             try:
                 jsonDecoded = json.loads(msg)
-                print(jsonDecoded, 'request' in jsonDecoded, 'friendCode' in jsonDecoded, 'friendcode' in jsonDecoded, 'part1' in jsonDecoded, 'id0' in jsonDecoded)
+                print(jsonDecoded, 'request' in jsonDecoded, 'friendCode' in jsonDecoded, 'friendcode' in jsonDecoded, 'part1' in jsonDecoded, 'id0' in jsonDecoded, ('id0' in jsonDecoded and jsonDecoded['id0'] is not None and len(jsonDecoded['id0']) == 32))
                 if 'id0' in jsonDecoded and jsonDecoded['id0'] is not None and len(jsonDecoded['id0']) == 32:
                     connections[jsonDecoded['id0']] = ws
                     if 'request' in jsonDecoded and jsonDecoded['request'] == 'bruteforce':
