@@ -61,9 +61,11 @@ def socket(ws):
                     elif 'friendCode' in jsonDecoded:
                         fc = int(jsonDecoded['friendCode'])
                         if verify_fc(fc):
+                            print("adding")
                             db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'friendcode': fc}}, upsert=True)
                             ws.send(buildMessage('friendCodeProcessing'))
                         else:
+                            print("fail")
                             ws.send(buildMessage('friendCodeInvalid'))
                     elif 'part1' in jsonDecoded:
                         db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(jsonDecoded['lfcs'])}}, upsert=True)
