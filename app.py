@@ -64,7 +64,7 @@ def socket(ws):
                             db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'friendcode': fc}}, upsert=True)
                             ws.send(buildMessage('friendCodeProcessing'))
                         else:
-                            ws.send(buildMessage('friendCodeAdded'))
+                            ws.send(buildMessage('friendCodeInvalid'))
                     elif 'part1' in jsonDecoded:
                         db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(jsonDecoded['lfcs'])}}, upsert=True)
                         ws.send(buildMessage('queue'))
