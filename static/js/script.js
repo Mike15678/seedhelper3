@@ -258,12 +258,12 @@ document.getElementById("beginButton").addEventListener("click", function(e) {
         socket.send(JSON.stringify({
             part1: document.getElementById("part1b64").value,
             defoID0: force,
-            id0: document.getElementById("id0").value,
+            id0: document.getElementById("id0").value.trim(),
         }))
     } else {
         socket.send(JSON.stringify({
-            friendCode: document.getElementById("friendCode").value,
-            id0: document.getElementById("id0").value,
+            friendCode: document.getElementById("friendCode").value.trim(),
+            id0: document.getElementById("id0").value.trim(),
             defoID0: force
         }))
     }
