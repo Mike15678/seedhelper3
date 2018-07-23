@@ -183,7 +183,7 @@ while True:
                     else:
                         print("Upload failed!")
                         sys.exit(1)
-    except Exception:
-        print("Error")
+    except Exception as e:
+        print("Error", e)
         s.get(baseurl + "/cancel/" + currentid + "?kill=n")
         time.sleep(10)
