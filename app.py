@@ -181,7 +181,7 @@ def getwork():
     currentlymining = db.devices.count_documents({"miner": request.headers['X-Forwarded-For'], "lfcs": {"$exists": True},"hasmovable": {"$ne": True}, "$and": [{"expirytime": {"$ne": emptytime}}, {"expirytime": {"$gt": datetime.datetime.now()}}]})
     if currentlymining > 0:
         return 'nothing'
-    devicetomine = db.devices.find_one({"hasmovable": {"$ne": True}, "expirytime": {"$eq": emptytime}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
+    devicetomine = db.devices.find_one({"hasmovable": {"$ne": True}, 'lfcs': {'$exists': True}, "expirytime": {"$eq": emptytime}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
     print("thing", devicetomine)
     if devicetomine is not None and '_id' in devicetomine:
         print("returning", devicetomine)
