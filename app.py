@@ -178,7 +178,7 @@ def movable(id0):
 @app.route('/getwork')
 def getwork():
 	# Not expired: expirytime != empty, and expirytime is _after_ now.
-    currentlymining = db.devices.count_documents({"miner": request.headers['X-Forwarded-For'], "hasmovable": {"$ne": True}, "expirytime": {"$and": [{"$ne": emptytime}, {"$gt": datetime.datetime.now()}]}})
+    currentlymining = db.devices.count_documents({"miner": request.headers['X-Forwarded-For'], "hasmovable": {"$ne": True}, {"$and": [{"expirytime": {"$ne": emptytime}}, {"expirytime": {"$gt": datetime.datetime.now()}}]}})
     if currentlymining > 0:
         return 'nothing'
     devicetomine = db.devices.find_one({"hasmovable": {"$ne": True}, "expirytime": {"$eq": emptytime}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
