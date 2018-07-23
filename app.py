@@ -29,6 +29,7 @@ emptytime = datetime.datetime(1,1,1)
 
 #thx to kurisu
 def verify_fc(fc):
+    fc = int(fc)
     if fc > 0x7FFFFFFFFF:
         return None
     principal_id = fc & 0xFFFFFFFF
@@ -58,21 +59,31 @@ def socket(ws):
                     if 'request' in jsonDecoded and jsonDecoded['request'] == 'bruteforce':
                         db.devices.update_one({'_id': jsonDecoded['id0'], 'lfcs': {'$exists': True}}, {'$set': {'wantsbf': True, 'expirytime': emptytime}}, upsert=True)
                         ws.send(buildMessage('queue'))
+                    elif 'request' in jsonDecoded and jsonDecoded['request'] == 'cancel':
+                        db.devices.remove({'_id': jsonDecoded['id0']})
                     elif 'friendCode' in jsonDecoded:
-                        fc = int(jsonDecoded['friendCode'])
-                        if verify_fc(fc):
-                            print("adding")
-                            db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'friendcode': fc}}, upsert=True)
+                        fc = jsonDecoded['friendCode']
+                        if not fc.isdigit():
+                            ws.send(buildMessage('friendCodeInvalid'))
+                        elif verify_fc(fc):
+                            db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'friendcode': int(fc)}}, upsert=True)
                             ws.send(buildMessage('friendCodeProcessing'))
                         else:
-                            print("fail")
                             ws.send(buildMessage('friendCodeInvalid'))
                     elif 'part1' in jsonDecoded:
                         db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(jsonDecoded['lfcs'])}}, upsert=True)
                         ws.send(buildMessage('queue'))
                     else:
                         device = db.devices.find_one({"_id": jsonDecoded['id0']})
-                        if 'lfcs' in device: 
+                        if 'cancelled' in device and device['cancelled']:
+                            ws.send(buildMessage('flag'))
+                        elif 'expirytime' in device and device['expirytime'] != emptytime and device['expirytime'] < datetime.datetime.now():
+                            ws.send(buildMessage('flag'))
+                        elif 'miner' in device:
+                            ws.send(buildMessage('bruteforcing'))
+                        elif 'wantsbf' in device and device['wantsbf'] == True:
+                            ws.send(buildMessage('queue'))
+                        elif 'lfcs' in device:
                             ws.send(buildMessage('movablePart1'))
                         elif 'hasadded' in device and device['hasadded'] == True:
                             ws.send(buildMessage('friendCodeAdded'))
@@ -85,7 +96,7 @@ def socket(ws):
 def getfcs():
     string = ''
     try:
-        users = db.devices.find_one({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}})
+        users = db.devices.find({"hasadded": {"$ne": True}, "friendcode": {"$exists": True}})
         if users is not None:
             for user in users:
                 try:
@@ -114,7 +125,6 @@ def added(fc):
         return 'ok'
     except:
         return 'error'
-    #
 
 @app.route('/lfcs/<int:fc>')
 def lfcs(fc):
@@ -141,7 +151,7 @@ def part1(id0):
             st = struct.pack('>8s8x', device['lfcs'][::-1])
             print(st)
             st += bytearray(id0, 'ascii')
-            st+= bytearray(976)
+            st+= bytearray(976+(4096-1024))
             resp = make_response(st)
             resp.headers['Content-Type'] = 'application/octet-stream'
             resp.headers['Content-Disposition'] = 'inline; filename="movable_part1.sed"'
@@ -167,19 +177,22 @@ def movable(id0):
 
 @app.route('/getwork')
 def getwork():
-    currentlymining = db.devices.count_documents({"miner": request.headers['X-Forwarded-For'], "hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}})
+	# Not expired: expirytime != empty, and expirytime is _after_ now.
+    currentlymining = db.devices.count_documents({"miner": request.headers['X-Forwarded-For'], "hasmovable": {"$ne": True}, "expirytime": {"$and": [{"$ne": emptytime}, {"$gt": datetime.datetime.now()}]}})
     if currentlymining > 0:
         return 'nothing'
-    devicetomine = db.devices.find_one({"hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
+    devicetomine = db.devices.find_one({"hasmovable": {"$ne": True}, "expirytime": {"$eq": emptytime}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
     print("thing", devicetomine)
     if devicetomine is not None and '_id' in devicetomine:
+        print("returning", devicetomine)
         return devicetomine['_id']
     else:
         return 'nothing'
 
 @app.route('/claim/<id0>')
 def claim(id0):
-    devicetomine = db.devices.find_one({"_id": id0, "hasmovable": {"$ne": True}, "expirytime": {"$ne": emptytime}, "expired": {"$ne": True}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
+    devicetomine = db.devices.find_one({"_id": id0, "hasmovable": {"$ne": True}, "expirytime": {"$eq": emptytime}, "wantsbf": True, "miner": {"$exists": False}, "cancelled": {"$ne": True}})
+    print("got", devicetomine)
     if devicetomine != None:
         db.devices.update_one({"_id": id0}, {'$set': {'miner': request.headers['X-Forwarded-For'], 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1)}})
         safeSendMessage(id0, 'bruteforcing')
@@ -189,19 +202,19 @@ def claim(id0):
 
 @app.route('/check/<id0>')
 def check(id0):
-    db.devices.update({'_id': id0}, {'checktime': datetime.datetime.now()})
-    devicetomine = db.devices.find_one({"_id": id0, "hasmovable": {"$ne": True}, "expirytime": {"$gt": datetime.datetime.now()}, "expired": {"$ne": True}, "wantsbf": True, "cancelled": {"$ne": True}})
+    db.devices.update({'_id': id0}, {'$set':{'checktime': datetime.datetime.now()}})
+    devicetomine = db.devices.find_one({"_id": id0, "hasmovable": {"$ne": True}, "expirytime": {"$gt": datetime.datetime.now()}, "wantsbf": True, "cancelled": {"$ne": True}})
     if devicetomine != None:
-        return 'error'
-    else:
         return 'ok'
+    else:
+        return 'error'
 
 @app.route('/cancel/<id0>')
 def cancel(id0):
     kill = request.args.get('kill', 'n')
-    devicetomine = db.devices.find_one({"_id": id0, "hasmovable": {"$ne": True}, "expirytime": {"$gt": datetime.datetime.now()}, "expired": {"$ne": True}, "wantsbf": True, "cancelled": {"$ne": True}, "miner": {"$exists": False}})
+    devicetomine = db.devices.find_one({"_id": id0, "hasmovable": {"$ne": True}, "expirytime": {"$gt": datetime.datetime.now()}, "wantsbf": True, "cancelled": {"$ne": True}})
     if devicetomine != None:
-        db.devices.update_one({"_id": id0}, {'$set': {'miner': request.headers['X-Forwarded-For'], 'cancelled': (kill == 'y'), 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1)}})
+        db.devices.update_one({"_id": id0}, {'$set': {'cancelled': (kill == 'y'), 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1)}, '$unset': {'miner':''}})
         if kill == 'y':
             safeSendMessage(id0, 'flag')
         else:

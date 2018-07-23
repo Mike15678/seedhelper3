@@ -134,7 +134,7 @@ socket.addEventListener("message", function(e) {
         document.getElementById("collapseTwo").classList.remove("show")
         document.getElementById("collapseThree").classList.add("show")
         document.getElementById("downloadPart1").href = "/part1/" + localStorage.getItem("id0")
-        document.getElementById("downloadPart12").href = "/part1/" + localStorage.getItem("id0")
+        // document.getElementById("downloadPart12").href = "/part1/" + localStorage.getItem("id0")
         // document.getElementById("downloadPart1").click()
     }
     if (data.status == "done") {
@@ -319,7 +319,7 @@ function cancel (e) {
     document.getElementById("downloadPart1").click()
     socket.send(JSON.stringify({
         request: "cancel",
-        id0: document.getElementById("id0").value,
+        id0: localStorage.getItem("id0"),
     }))
     document.getElementById("collapseFour").classList.remove("show")
     document.getElementById("collapseOne").classList.add("show")
