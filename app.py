@@ -71,7 +71,7 @@ def socket(ws):
                         else:
                             ws.send(buildMessage('friendCodeInvalid'))
                     elif 'part1' in jsonDecoded:
-                        db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(jsonDecoded['lfcs'])}}, upsert=True)
+                        db.devices.update_one({'_id': jsonDecoded['id0']}, {'$set': {'wantsbf': True, 'expirytime': datetime.datetime.now() + datetime.timedelta(hours=1), 'lfcs': binascii.a2b_base64(jsonDecoded['part1'])}}, upsert=True)
                         ws.send(buildMessage('queue'))
                     else:
                         device = db.devices.find_one({"_id": jsonDecoded['id0']})
