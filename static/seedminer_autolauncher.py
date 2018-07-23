@@ -154,7 +154,7 @@ while True:
                             print("Job cancelled or expired, killing...")
                             # process.kill() broke
                             subprocess.call(
-                                ['taskkill', '/F', '/T', '/IM', 'bfcl.exe'])
+                                ['taskkill', '/F', '/IM', 'bfcl.exe'])
                             currentid = ""
                             print("press ctrl-c to quit")
                             time.sleep(5)
