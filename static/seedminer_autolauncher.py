@@ -116,6 +116,9 @@ while True:
         if r.text == "nothing":
             print("No work. Waiting 30 seconds...")
             time.sleep(30)
+        elif r.text.length != 32:
+            print("Invalid ID0 (server error?) Waiting 30 seconds...")
+            time.sleep(30)
         else:
             currentid = r.text
             r2 = s.get(baseurl + "/claim/" + currentid)
