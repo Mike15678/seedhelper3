@@ -134,7 +134,7 @@ while True:
                     kwargs['creationflags'] = 0x00000200
                 # , stdout=subprocess.PIPE, universal_newlines=True)
                 process = subprocess.Popen(
-                    [sys.executable, "seedminer_launcher3.py", "gpu"], **kwargs)
+                    [sys.executable, "seedminer_launcher3.py", "gpu", "0", "100"], **kwargs)
                 timer = 0
                 #stdout = open(process.stdout)
                 while process.poll() == None:
